@@ -53,7 +53,8 @@ def holiday_dates(year):
 			"Christmas Eve":				date(year,12,24),
 			"Christmas":					date(year,12,25),
 			"New Year's Eve":				date(year,12,31),
-			"Fake Holiday":					date.today()
+			"Fake Holiday":					date.today(),
+			"Other Fake Holiday":			date.today()
 		},
 		"CA": {
 			"New Years Day": 				date(year,1,1),
@@ -89,8 +90,14 @@ def holiday_dates(year):
 
 def get_holiday(date, location):
 	dates = holiday_dates(date.year)
-	return [name for name, h_date in dates[location].items() if h_date == date]
 
+	current_holiday = [name for name, h_date in dates[location].items() if h_date == date]
+	if len(current_holiday) == 0:
+		current_holiday = None
+
+	# this is broken for now
+	next_holiday = next(name for name, h_date in dates[location].items() if h_date > date.today())
+	return current_holiday, next_holiday
 
 class Holiday(Entity):
 	""" Representation of the current holiday """
@@ -108,7 +115,12 @@ class Holiday(Entity):
 	@property
 	def state(self):
 		"""Return the current holiday."""
-		return self.holiday
+		return ", ".join(self.holiday[0])
+
+	@property
+	def device_state_attributes(self):
+		"""Add platform specific attributes."""
+		return {'next_holiday': self.holiday[1]}
 
 	def update(self):
 		"""Update holiday."""
